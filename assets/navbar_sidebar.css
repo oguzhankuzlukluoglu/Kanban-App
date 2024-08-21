@@ -1,0 +1,124 @@
+ .nav-pills>li>a {
+    border-radius: 0;
+ }
+
+ body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+ }
+
+ body button:focus,
+ body button:active {
+    border: none;
+ }
+
+ #wrapper {
+    display: flex;
+    padding-left: 0;
+    transition: all 0.5s ease;
+ }
+
+ #sidebar-wrapper {
+    position: fixed;
+    width: 0;
+    height: 100%;
+    background: #F7F8F9;
+    transition: all 0.5s ease;
+ }
+
+ #sidebar-toggle:active #sidebar-wrapper {
+    margin-left: 0px;
+ }
+
+ #sidebar-wrapper>ul {
+    margin-left: -250px;
+ }
+
+ #page-content-wrapper {
+    position: relative;
+    width: 100%;
+ }
+
+ #body-navbar {
+    position: fixed;
+    width: 100%;
+    margin-left: 0;
+    height: 56px;
+    z-index: 1000;
+ }
+
+ /* Sidebar Styles */
+
+ .sidebar-nav {
+    position: relative;
+    top: 0;
+    width: 250px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    margin-top: 2px;
+ }
+
+ .sidebar-nav li {
+    text-indent: 15px;
+    line-height: 40px;
+ }
+
+ .sidebar-nav li a,
+ .hover-a,
+ .hover-icon {
+    display: block;
+    text-decoration: none;
+    color: #999999;
+ }
+
+ .hover-div:hover {
+    transition: all 0.1s ease;
+    text-decoration: none;
+    color: #23214B;
+    background: rgba(255, 255, 255, 0.2);
+    border-left: #23214B 3px solid;
+ }
+
+ .sidebar-nav li a:hover {
+    transition: all 0.1s ease;
+    text-decoration: none;
+    color: #23214B;
+    background: rgba(255, 255, 255, 0.2);
+    border-left: #23214B 3px solid;
+ }
+
+ .sidebar-nav li a:active,
+ .sidebar-nav li a:focus {
+    text-decoration: none;
+ }
+
+ @media (min-width: 768px) {
+    #sidebar-toggle {
+       display: none;
+    }
+
+    #body-navbar {
+       position: fixed;
+       width: 100%;
+       margin-left: 250px;
+       height: 56px;
+       z-index: 1000;
+    }
+
+    #sidebar-wrapper {
+       width: 250px;
+       height: 100%;
+    }
+
+    #sidebar-wrapper>ul {
+       margin-left: 0px;
+    }
+
+    #page-content-wrapper {
+       margin-left: 250px;
+       padding: 2%;
+       position: relative;
+       transition: all 0.5s ease;
+    }
+
+ }

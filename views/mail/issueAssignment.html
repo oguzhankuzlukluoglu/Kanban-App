@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KanbanApp Bildirimi</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f4f4;
+    }
+    .main-table {
+      width: 100%;
+      background-color: #0f3462;
+      padding: 30px 0;
+    }
+    .content-table {
+      width: 650px;
+      background-color: #ffffff;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: auto;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .header-title {
+      text-align: center;
+      padding: 30px 0;
+      background-color: #f7f7f7;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .header-title i {
+      color: #ff6f61;
+      font-weight: bold;
+    }
+    .sub-header {
+      text-align: center;
+      padding: 20px 40px;
+      font-size: 24px;
+      color: #333333;
+      background-color: #ffffff;
+    }
+    .paragraph {
+      padding: 0 40px 20px 40px;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #555555;
+    }
+    .button-wrapper {
+      text-align: center;
+      padding: 20px;
+      background-color: #f7f7f7;
+    }
+    .cta-button {
+      background-color: #36b445;
+      color: #ffffff;
+      padding: 15px 30px;
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: bold;
+      display: inline-block;
+      transition: background-color 0.3s ease;
+      font-size: 16px;
+    }
+    .cta-button:hover {
+      background-color: #2e8b57;
+    }
+    .footer {
+      text-align: center;
+      padding: 25px 40px;
+      background-color: #f7f7f7;
+      color: #999999;
+      font-size: 14px;
+    }
+    .footer h2 {
+      margin: 0 0 10px;
+      color: #333333;
+    }
+  </style>
+</head>
+<body>
+  <!-- Main table -->
+  <table class="main-table">
+    <tr>
+      <td align="center">
+        <!-- Content table -->
+        <table class="content-table">
+          <tr>
+            <td>
+              <div class="header-title">
+                <i>Kanban</i><span style="color: lightcoral;">App</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td class="sub-header">
+              <h1>Merhaba {{ .Name }}</h1>
+              <p>KanbanApp'den bir bildirimin var</p>
+            </td>
+          </tr>
+          <tr>
+            <td class="paragraph">
+              {{ .Who }} mail adresine sahip kullanıcı, seni "{{ .WhichProject }}" adlı projede "{{ .WhichIssue }}" isimli göreve atadı.
+            </td>
+          </tr>
+          <tr>
+            <td class="button-wrapper">
+              <a href="http://localhost:8000/team_space/list/{{.ProjectID}}" class="cta-button">Görmek için Tıkla</a>
+            </td>
+          </tr>
+          <tr>
+            <td class="footer">
+              <h2>Need Help?</h2>
+              <p>Contact to us</p>
+            </td>
+          </tr>
+        </table>
+        <!-- /Content table -->
+      </td>
+    </tr>
+  </table>
+  <!-- /Main table -->
+</body>
+</html>

@@ -1,0 +1,260 @@
+{{ define "content" }}
+<style>
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes fadeInRight {
+        from {
+            opacity: 0;
+            transform: translateX(-100px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes fadeInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(100px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    #welcome-message {
+        animation: fadeIn 2s ease-out forwards;
+        position: relative;
+        height: 200px;
+        /* Adjust as needed */
+    }
+
+    #first-hr {
+        animation: fadeInRight 2s ease-out forwards;
+    }
+
+    #second-hr {
+        animation: fadeInLeft 2s ease-out forwards;
+    }
+
+    .rotating-text1 {
+        animation: fadeInLeft 2s ease-out forwards;
+        display: none;
+    }
+
+    @keyframes rotate-text-up {
+        0% {
+            transform: translate3d(0, -40px, 0);
+            opacity: 0;
+        }
+
+        20%,
+        80% {
+            transform: translate3d(0, 0, 0);
+            opacity: 1;
+        }
+
+        100% {
+            transform: translate3d(0, 40px, 0);
+            opacity: 0;
+        }
+    }
+
+    @keyframes fade-text-in {
+        0% {
+            opacity: 0;
+            transform: translate3d(0, -40px, 0);
+        }
+
+        50%,
+        100% {
+            opacity: 1;
+            transform: translate3d(0, 0, 0);
+        }
+    }
+
+    .text-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .rotatingText1,
+    .rotatingText2 {
+        position: absolute;
+        text-align: center;
+        padding: 5%;
+        color: #23214B;
+        width: 100%;
+        opacity: 0;
+    }
+
+    .rotatingText1 {
+        animation: rotate-text-up 2s .75s;
+        z-index: 2;
+    }
+
+    .rotatingText2 {
+        animation: fade-text-in 2s 3.25s forwards;
+        z-index: 1;
+    }
+</style>
+
+<div id="page-content-wrapper">
+    <div class="container-fluid">
+        <div class="row">
+            <div>
+                <hr id="first-hr" style="border: 2px solid #23214B; opacity: 100%;">
+                <div id="welcome-message" class="rounded-pill" style="border: 5px inset #23214B;">
+                    {{ range $index, $value := .User }}
+                    <div class="text-container">
+                        <h1 class="rotatingText1">Hoşgeldin, {{$value.Username}}!</h1>
+                        <h1 class="rotatingText2">Günün nasıl geçiyor?</h1>
+                    </div>
+                    {{ end }}
+                </div>
+                <hr id="second-hr" style="border: 2px solid #23214B; opacity: 100%;">
+                <br>
+                <h5 style="text-align: center;">Görevlerini bu alanda görebilirsin...</h5>
+                <br>
+                <table class="table table-striped table-bordered w-100" id="issueTable">
+                    <thead>
+                        <tr>
+                            <th class="align-middle" scope="col" onclick="sortTable(0)">Görev Adı</th>
+                            <th class="align-middle" scope="col" onclick="sortTable(1)">Bulunduğu Proje</th>
+                            <th class="align-middle" scope="col" onclick="sortTable(2)">Durum</th>
+                            <th class="align-middle" scope="col" onclick="sortTable(3)">Öncelik</th>
+                            <th class="align-middle" scope="col" onclick="sortTable(4)">Bitiş Tarihi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{ range $index, $value := .MyIssues }}
+                        <tr>
+                            <td class="align-middle"><a
+                                    href="/team_space/list/{{$value.ProjectID}}">{{$value.Title}}</a>
+                            </td>
+                            <td class="align-middle">{{$value.Project.Name}}</td>
+                            <td class="align-middle">
+                                {{$status := $value.Status}}
+                                {{if eq $status "card1"}} To Do
+                                {{else if eq $status "card2"}} Working
+                                {{else if eq $status "card3"}} Done
+                                {{else}} Unknown
+                                {{end}}
+                            </td>
+                            <td class="align-middle">{{$value.Priority}}</td>
+                            <td class="align-middle dateformat">{{$value.DueDate}}</td>
+                            <input type="hidden" class="updateTime" value="{{ $value.UpdatedAt }}">
+                        </tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Sorting-->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const table = document.getElementById("issueTable");
+        const tbody = table.tBodies[0];
+        const rows = Array.from(tbody.rows);
+        const isAsc = table.dataset.sortOrder !== 'asc';
+
+        rows.sort((rowA, rowB) => {
+            const dateA = new Date(rowA.querySelector('.updateTime').value);
+            const dateB = new Date(rowB.querySelector('.updateTime').value);
+            return dateB - dateA;
+        });
+
+        rows.forEach(row => tbody.appendChild(row));
+        table.dataset.sortOrder = isAsc ? 'asc' : 'desc';
+    });
+
+    function sortTable(columnIndex) {
+        const table = document.getElementById("issueTable");
+        const tbody = table.tBodies[0];
+        const rows = Array.from(tbody.rows);
+        const isAsc = table.dataset.sortOrder !== 'asc';
+
+        rows.sort((rowA, rowB) => {
+            const cellA = rowA.cells[columnIndex].innerText.toLowerCase();
+            const cellB = rowB.cells[columnIndex].innerText.toLowerCase();
+
+            if (cellA < cellB) return isAsc ? -1 : 1;
+            if (cellA > cellB) return isAsc ? 1 : -1;
+            return 0;
+        });
+
+        rows.forEach(row => tbody.appendChild(row));
+        table.dataset.sortOrder = isAsc ? 'asc' : 'desc';
+    }
+</script>
+
+<style>
+    th {
+        cursor: pointer;
+    }
+
+    .blinking {
+        animation: blinker 1s linear infinite;
+    }
+
+    @keyframes blinker {
+        50% {
+            opacity: 0;
+        }
+    }
+
+    .text-danger {
+        color: red !important;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Günün saatini sıfırlama
+        const dueDateElements = document.querySelectorAll(".dateformat");
+
+        dueDateElements.forEach(function (element) {
+            const dueDate = new Date(element.textContent.trim());
+            const day = dueDate.getDate().toString().padStart(2, '0');
+            const month = (dueDate.getMonth() + 1).toString().padStart(2, '0');
+            const year = dueDate.getFullYear();
+            const formattedDate = `${year}-${month}-${day}`;
+
+            console.log(today);
+            console.log(dueDate);
+            element.textContent = formattedDate;
+
+            if (dueDate < today) {
+                element.classList.add("blinking", "text-danger");
+                element.textContent += " (süresi doldu)";
+            } else if (dueDate.getDate() == today.getDate() && dueDate.getMonth() == today.getMonth() && dueDate.getFullYear() == today.getFullYear() ) {
+                element.classList.add("blinking", "text-danger");
+                element.textContent += " (süresi doluyor)";
+            }
+        });
+    });
+</script>
+
+{{ end }}

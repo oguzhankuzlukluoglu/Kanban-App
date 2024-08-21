@@ -1,0 +1,14 @@
+
+{{ define "alert" }}
+{{ if .is_alert}}
+<script src="/assets/iziToast.min.js"></script>
+<script>
+    iziToast.show({
+        title: '{{ .message }}',
+        message: '',
+        position: 'topCenter',
+        theme: "dark",
+    });
+</script>
+{{ end}}
+{{ end}}

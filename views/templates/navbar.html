@@ -1,0 +1,123 @@
+{{ define "navbar" }}
+
+<nav class="navbar sticky-top navbar-expand-lg" style="background-color: #23214B;">
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center w-100">
+            <button class="btn btn-outline-primary" type="button" style="color: white; border: none;"
+                id="sidebar-toggle">
+                <i class="bi bi-list" style="font-size: larger;"></i>
+            </button>
+            <div>
+                <a class="navbar-brand" href="/">
+           <!--
+                     <img src="" alt="" width="150"
+                        height="25">
+                    -->        
+                </a>
+            </div>
+            <div class="w-25" style="min-width: 200px;">
+                <form class="d-flex w-100" role="search">
+                    <div class="dropdown-center w-100">
+                        <input class="form-control search w-100" id="searchBar"
+                            style="background-color: rgba(71, 73, 100, 1); border-color: rgba(71, 73, 100, 1); color: white;"
+                            type="search" placeholder="Proje arayın..." aria-label="Search" autocomplete="off">
+                        <div class="dropdown-menu bg-body-tertiary rounded shadow-lg p-3 w-100"
+                            style="max-height: 300px; overflow-y: auto;" id="dropdownSearch">
+                            <h6 class="ms-1">Benim Projelerim</h6>
+                            {{ range $index, $value := .MyProjects}}
+                            <label class="dropdown-item">
+                                <div>
+                                    <a href="/team_space/list/{{$value.ID}}" style="display: block;"
+                                        class="text-decoration-none text-dark w-100">{{$value.Name}}</a>
+                                </div>
+                            </label>
+                            {{end}}
+                            <hr class="dropdown-divider">
+                            <h6 class="ms-1">Dahil Olduğum Projeler</h6>
+                            {{ range $index, $value := .SharedWithMe}}
+                            <label class="dropdown-item">
+                                <div>
+                                    <a href="/team_space/list/{{$value.ProjectID}}" style="display: block; width: 100%;"
+                                        class="text-decoration-none text-dark">{{$value.Name}}</a>
+                                </div>
+                            </label>
+                            {{ end }}
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        {{ range $index, $value := .User }}
+                        <button style="color: white; border: none;" class="btn btn-outline-success dropdown-toggle ms-2"
+                            type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            {{ $value.Username }}
+                        </button>
+                        {{ end }}
+                        <ul class="dropdown-menu dropdown-menu-lg-end shadow-lg bg-body-tertiary rounded">
+                            <li><button class="dropdown-item" data-bs-toggle="offcanvas" data-bs-target="#profile"
+                                    type="button" aria-controls="profile">Profil</button></li>
+                            <li><a class="dropdown-item" href="/settings">Ayarlar</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="/logout">Çıkış</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('searchBar');
+        const dropdown = document.getElementById('dropdownSearch');
+
+        searchInput.addEventListener('click', function () {
+            dropdown.style.display = "block";
+        });
+
+        searchInput.addEventListener('input', function () {
+            const filter = searchInput.value.toLowerCase();
+            Array.from(dropdown.getElementsByClassName('dropdown-item')).forEach(item => {
+                const txtValue = item.textContent || item.innerText;
+                if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!searchInput.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.style.display = "none"
+            }
+        });
+
+    });
+</script>
+
+<div class="offcanvas shadow-lg bg-body-tertiary rounded w-25 p-3 offcanvas-end" tabindex="-1" id="profile"
+    aria-labelledby="profileLabel">
+    {{ range $index, $value := .User }}
+    <div class="offcanvas-header">
+        <h3 class="offcanvas-title" id="profileLabel">{{ $value.Username }}</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <hr>
+    <div class="offcanvas-body">
+        <div>
+            <h5>Email</h5>
+            <p>{{ $value.Email }}</p>
+            <br>
+            <h5>Hakkımda</h5>
+            <p>{{ $value.Bio }}</p>
+        </div>
+    </div>
+    {{ end }}
+</div>
+{{ end }}

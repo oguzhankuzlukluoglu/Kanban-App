@@ -1,0 +1,3 @@
+config/config.json
+models/mailSender.go
+.env

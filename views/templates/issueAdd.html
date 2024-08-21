@@ -1,0 +1,123 @@
+{{ define "issueAdd" }}
+<div class="z-3 position-fixed bottom-0 end-0 p-3">
+  {{ range $index, $value := .Project }}
+  <button style="border: none;" type="button" class="d-flex btn btn-primary" data-bs-toggle="modal"
+    data-bs-target="#taskModal" data-bs-id="{{$value.ID}}">
+    <span><i class="bi bi-plus me-1" style="font-size: large;"></i></span>Görev Ekle
+  </button>
+  {{ end }}
+</div>
+
+
+<!--TaskModal-->
+<div class="modal fade" id="taskModal" tabindex="-1" aria-labelledby="taskModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header align-items-center">
+        <h5 class="modal-title fs-5" id="taskModalLabel">Görev Oluştur</h5>
+      </div>
+      <div class="modal-body">
+        <form action="/issue-yeni-ekle" method="post" id="issueAddForm">
+          <div>
+            <label class="col-form-label">Görev Başlığı</label>
+            <input type="text" class="form-control" name="name" autocomplete="off" required>
+            <br>
+            <label class="col-form-label">Açıklama</label>
+            <input type="text" class="form-control" name="description" autocomplete="off">
+            <br>
+            <label class="col-form-label">Kullanıcılar</label>
+            <div class="dropdown">
+              <input type="text" class="form-control" id="searchInputIssue" placeholder="Kullanıcı arayın...">
+              <div class="dropdown-menu shadow-lg" style="max-height: 250px; overflow-y: auto;" id="dropdownIssue">
+                {{ range $index, $value := .UserRoles}}
+                <label class="dropdown-item">
+                    <input class="form-check-input" type="checkbox" name="checkboxes" value="{{ $value.UserID }}">{{ $value.Email }}
+                </label>
+                {{ end }}
+              </div>
+              <div class="invalid-feedback">
+                Lütfen en az bir kullanıcı seçin.
+              </div>
+            </div>
+            <br>
+            <label class="col-form-label">Bitiş Tarihi</label>
+            <input type="date" class="form-control" name="due_date">
+            <br>
+            <label class="col-form-label">Öncelik</label>
+            <select class="form-select" aria-label="Default select example" name="priority" required>
+              <option value="" disabled selected hidden>Öncelik seçin...</option>
+              <option value="Acil">Acil</option>
+              <option value="Yüksek">Yüksek</option>
+              <option value="Orta">Orta</option>
+              <option value="Düşük">Düşük</option>
+            </select>
+            <br>
+            <!-- Gizli input alanı -->
+            <input type="hidden" name="project_id" id="project_id">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+        <button form="issueAddForm" type="submit" class="btn btn-primary">Oluştur</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--UserAdd-->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('searchInputIssue');
+    const dropdown = document.getElementById('dropdownIssue');
+    const invalidFeedback = document.querySelector('.invalid-feedback');
+    const issueAddForm = document.getElementById('issueAddForm');
+
+    searchInput.addEventListener('click', function () {
+      dropdown.style.display = "block";
+    });
+
+    searchInput.addEventListener('input', function () {
+      const filter = searchInput.value.toLowerCase();
+      Array.from(dropdown.getElementsByClassName('dropdown-item')).forEach(item => {
+        const txtValue = item.textContent || item.innerText;
+        if (txtValue.toLowerCase().indexOf(filter) > -1) {
+          item.style.display = '';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+
+    document.addEventListener('click', function (event) {
+      if (!searchInput.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.style.display = "none";
+      }
+    });
+
+    function isCheckboxChecked() {
+      const checkboxes = dropdown.querySelectorAll('input[type="checkbox"]');
+      return Array.from(checkboxes).some(checkbox => checkbox.checked);
+    }
+
+    issueAddForm.addEventListener('submit', function (event) {
+      if (!isCheckboxChecked()) {
+        event.preventDefault();
+        searchInput.classList.add('is-invalid');
+        dropdown.style.display = "block";
+      } else {
+        searchInput.classList.remove('is-invalid');
+      }
+    });
+  });
+</script>
+
+<script>
+  $('#taskModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var projectID = button.data('bs-id');
+    var modal = $(this);
+    modal.find('#project_id').val(projectID);
+  });
+</script>
+{{ end }}

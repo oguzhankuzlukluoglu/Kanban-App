@@ -1,0 +1,112 @@
+{{ define "content" }}
+{{ template "bodynavbar" . }}
+<style>
+  #board-button:hover {
+    background-color: #23214B;
+    color: white !important;
+  }
+</style>
+
+<div id="page-content-wrapper" style="margin-top: 112px;">
+  <div class="container-fluid">
+    <div class="row">
+      <!--board-->
+      <div class="container">
+        <div class="row" style="overflow-x: auto; max-width: max-content; flex-wrap: nowrap;">
+          <!-- To Do -->
+          <div class="col">
+            <div class="card drag-card" style="background-color: #23214B; width: 250px;" id="card1">
+              <div class="card-header d-flex align-items-center justify-content-between" style="color: white;">
+                <h3>To Do</h3>
+                <span id="card1-count" class="badge text-bg-secondary mb-2"
+                  style="text-indent: 0; font-size: larger;">1</span>
+              </div>
+              {{ range $index, $value := .ToDo }}
+              <div id="todo-item" class="drag-item" draggable="true" data-id="{{ $value.ID }}"
+                ondragstart="drag(event)">{{
+                $value.Title }}</div>
+              {{ end }}
+            </div>
+          </div>
+
+          <!-- Working -->
+          <div class="col">
+            <div class="card drag-card" style="background-color: #23214B; width: 250px;" id="card2">
+              <div class="card-header d-flex align-items-center justify-content-between" style="color: white;">
+                <h3>Working</h3>
+                <span id="card2-count" class="badge text-bg-secondary mb-2"
+                  style="text-indent: 0; font-size: larger;">1</span>
+              </div>
+              {{ range $index, $value := .Working }}
+              <div id="working-item" class="drag-item" draggable="true" data-id="{{ $value.ID }}"
+                ondragstart="drag(event)">{{
+                $value.Title }}</div>
+              {{ end }}
+            </div>
+          </div>
+
+          <!-- Done -->
+          <div class="col">
+            <div class="card drag-card" style="background-color: #23214B; width: 250px;" id="card3">
+              <div class="card-header d-flex align-items-center justify-content-between" style="color: white;">
+                <h3>Done</h3>
+                <span id="card3-count" class="badge text-bg-secondary mb-2"
+                  style="text-indent: 0; font-size: larger;">1</span>
+              </div>
+              {{ range $index, $value := .Done }}
+              <div id="done-item" class="drag-item" draggable="true" data-id="{{ $value.ID }}"
+                ondragstart="drag(event)">{{
+                $value.Title }}</div>
+              {{ end }}
+            </div>
+          </div>
+
+          <!--end-->
+        </div>
+      </div>
+    </div>
+    <!--board end-->
+  </div>
+</div>
+</div>
+
+<!-- BoardModal -->
+<div class="modal fade" id="boardModal" tabindex="-1" role="dialog" aria-labelledby="boardModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="boardModalLabel">Pano Oluştur</h5>
+      </div>
+      <div class="modal-body">
+        <!-- FORM -->
+        <form action="/board-yeni-ekle" method="post" id="boardForm">
+          <div class="form-group">
+            <label for="title">Pano Başlığı</label>
+            <br>
+            <input type="text" class="form-control" id="title" name="board_name" required />
+          </div>
+          <!-- Gizli input alanı -->
+          <input type="hidden" name="project_id" id="project_id">
+        </form>
+        <!-- Form  end -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          İptal
+        </button>
+        <button form="boardForm" type="submit" class="btn btn-primary">Kaydet</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $('#boardModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var projectID = button.data('bs-id');
+    var modal = $(this);
+    modal.find('#project_id').val(projectID);
+  });
+</script>
+{{ end }}

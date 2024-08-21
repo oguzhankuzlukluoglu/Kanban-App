@@ -1,0 +1,61 @@
+{{ define "loading" }}
+<style>
+    #loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        flex-direction: column;
+    }
+
+    @keyframes blink {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+</style>
+<div id="loading-screen">
+    <div class="spinner-border mt-4" style="border-width: .5rem; color: #0074C7; width: 5rem; height: 5rem;"
+        role="status"></div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        hideLoadingScreen();
+    });
+
+    // Bağlantılara tıklandığında loading screen'i gösterin
+    window.addEventListener('beforeunload', function (event) {
+        showLoadingScreen();
+    });
+
+    function showLoadingScreen() {
+        document.getElementById('loading-screen').style.display = 'flex';
+
+        // 5 saniye sonra loading screen'i otomatik olarak gizle
+        setTimeout(hideLoadingScreen, 5000);
+    }
+
+    function hideLoadingScreen() {
+        document.getElementById('loading-screen').style.display = 'none';
+    }
+
+    window.addEventListener('popstate', function () {
+        hideLoadingScreen();
+    });
+</script>
+{{ end }}

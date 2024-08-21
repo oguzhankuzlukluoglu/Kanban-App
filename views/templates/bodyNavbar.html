@@ -1,0 +1,384 @@
+{{ define "bodynavbar" }}
+<style>
+    .hover-button{
+        color: #595959;
+    }
+
+    .hover-button:hover{
+        color: #23214B;
+    }
+    
+    .hover-nav:hover .hover-button {
+        opacity: 1;
+    }
+</style>
+
+<!--bar-->
+<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom" id="body-navbar">
+    <div class="container justify-content-start ps-0 hover-nav ms-4">
+        {{ range $index, $value := .Project }}
+        <a class="navbar-brand me-0" href="/team_space/board/{{$value.ID}}">
+            <span><i class="bi bi-clipboard-data me-1"></i></span>
+            {{ $value.Name }}
+        </a>
+
+        <button class="btn hover-button" type="button" data-bs-toggle="modal" data-bs-id="{{$value.ID}}"
+            data-bs-target="#editProjectModal">
+            <span><i class="bi bi-three-dots"></i></span>
+        </button>
+        <button class="btn hover-button" type="button" data-bs-toggle="modal" data-bs-target="#editProjectUsersModal"
+            data-bs-id="{{$value.ID}}">
+            <span><i class="bi bi-person-gear" style="font-size: larger;"></i></span>
+        </button>
+        <button class="btn hover-button" type="button" data-bs-toggle="modal" data-bs-target="#addUserToProjectModal"
+            data-bs-id="{{$value.ID}}"><span><i class="bi bi-person-add" style="font-size: larger;"></i></span></button>
+        {{ end }}
+    </div>
+</nav>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light" id="body-navbar" style="margin-top: 56px;">
+    <div class="container-fluid">
+        <div class="collapse navbar-collapse" id="navbarNav" style="flex-basis: auto; display: block;">
+            {{ range $index, $value := .Project }}
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="/team_space/board/{{$value.ID}}"><span><i
+                                class="bi bi-kanban me-1"></i></span>Pano</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/team_space/list/{{$value.ID}}"><span><i
+                                class="bi bi-list-ul me-1"></i></span>Liste</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/team_space/table/{{$value.ID}}"><span><i
+                                class="bi bi-table me-1"></i></span>Tablo</a>
+                </li>
+            </ul>
+            {{ end }}
+        </div>
+    </div>
+</nav>
+
+<!--Project Edit-->
+<div class="modal fade" id="editProjectModal" tabindex="-1" role="dialog" aria-labelledby="editProjectModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProjectModalLabel">Proje Düzenle</h5>
+            </div>
+            {{ range $index, $value := .Project}}
+            <div class="modal-body">
+
+                <!-- FORM -->
+                <form action="/project-edit" method="post" id="projectEditForm">
+                    <div class="form-group">
+
+                        <div>
+                            <label for="title">Proje Başlığı</label>
+                            <br>
+                            <input type="text" class="form-control" id="title" name="name" value="{{ $value.Name }}"
+                                required>
+                            <br>
+                            <label for="title">Açıklama</label>
+                            <br>
+                            <input type="text" class="form-control" id="description" name="description"
+                                value="{{ $value.Description }}" required>
+                        </div>
+                    </div>
+                    <!-- Hidden input field -->
+                    <input type="hidden" name="project_id" id="project_id">
+                </form>
+                <form action="/project-delete" method="post" id="deleteProjectForm">
+                    <input type="hidden" name="project_id" id="delete_project_id">
+                </form>
+            </div>
+            <div class="modal-footer d-flex justify-content-between">
+                <a href="#" class="btn btn-danger" id="delete_project">Projeyi Sil</a>
+                <div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" form="projectEditForm" class="btn btn-primary"
+                        data-bs-target="#editProjectModal" data-bs-id="{{$value.ID}}">Kaydet</button>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+</div>
+
+<!--DeleteProject-->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var deleteButton = document.getElementById('delete_project');
+        var deleteForm = document.getElementById('deleteProjectForm');
+        var deleteProjectIdInput = document.getElementById('delete_project_id');
+        var projectIdInput = document.getElementById('project_id');
+
+        deleteButton.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            if (confirm('Bu alanı silmek istediğinizden emin misiniz?')) {
+                // Silme formundaki gizli input'a workspace_id değerini ata
+                deleteProjectIdInput.value = projectIdInput.value;
+
+                // Silme formunu gönder
+                deleteForm.submit();
+            }
+        });
+
+        // Modal açıldığında workspace_id'yi set et
+        var editProjectModal = document.getElementById('editProjectModal');
+        editProjectModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var projectId = button.getAttribute('data-bs-id');
+            projectIdInput.value = projectId;
+        });
+    });
+</script>
+
+<script>
+    $('#editProjectModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var projectID = button.data('bs-id');
+        var modal = $(this);
+        modal.find('#project_id').val(projectID);
+    });
+</script>
+
+<!-- editProjectUsers -->
+<div class="modal fade" id="editProjectUsersModal" tabindex="-1" aria-labelledby="editProjectUsersModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="editProjectUsersModalLabel">Proje Kullanıcılarını Düzenle</h1>
+            </div>
+            <div class="modal-body">
+                <form action="/project/set-user-role" method="post" id="project-user-role">
+                    <div>
+                        <!-- Hidden input field for project ID -->
+                        <input type="hidden" name="project_id" id="project_id" value="{{.ProjectId}}">
+                        {{ range $index, $value := .UserRoles }}
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="align-middle">{{ $value.Email }}</span>
+                            <!-- Hidden input field for user ID -->
+                            <input type="hidden" name="user_id_{{ $index }}" value="{{ $value.UserID }}">
+                            <div class="d-flex justify-content-end">
+                                {{ if ne $value.Role "owner" }}
+                                <button id="delete_project_user" class="btn btn-danger me-2" style="border-radius: 7px;"
+                                    type="button"><i id="delete_project_user" class="bi bi-person-dash"></i></button>
+                                {{ end }}
+                                <select class="form-select" name="authority_{{ $index }}" {{ if eq $value.Role "owner"
+                                    }}disabled{{ end }}>
+                                    <option value="owner" {{ if eq $value.Role "owner" }}selected{{ end }} disabled
+                                        hidden>
+                                        Proje Sahibi</option>
+                                    <option value="manager" {{ if eq $value.Role "manager" }}selected{{ end }}>Yönetici
+                                    </option>
+                                    <option value="member" {{ if eq $value.Role "member" }}selected{{ end }}>Üye
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        {{ end }}
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="submit" form="project-user-role" class="btn btn-primary">Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $('#addUserToProjectModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var projectID = button.data('bs-id');
+        var modal = $(this);
+        modal.find('#project_id').val(projectID);
+    });
+</script>
+
+<!--DeleteProjectUser-->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var modal = document.getElementById('editProjectUsersModal');
+
+        modal.addEventListener('click', function (event) {
+            console.log(event.target)
+            if (event.target && event.target.id === 'delete_project_user') {
+                var button = event.target;
+                var userDiv = button.closest('.d-flex.align-items-center.justify-content-between.mb-2');
+                var userIdInput = userDiv.querySelector('input[name^="user_id_"]');
+                var projectIdInput = modal.querySelector('input[name="project_id"]');
+
+                if (userIdInput && projectIdInput) {
+                    var userId = userIdInput.value;
+                    var projectId = projectIdInput.value;
+
+                    if (confirm("Bu kullanıcıyı projeden çıkarmak istediğinizden emin misiniz?")) {
+                        fetch('/deleteUser', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                user_id: userId,
+                                project_id: projectId
+                            })
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                // Kullanıcıyı başarılı bir şekilde sildikten sonra, div'i sayfadan kaldır
+                                userDiv.remove();
+                            } else {
+                                console.error('Kullanıcıyı silerken bir hata oluştu');
+                            }
+                        })
+                        .catch(error => console.error('İstek gönderilirken bir hata oluştu:', error));
+                    }
+                }
+            }
+        });
+
+        $('#editProjectUsersModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var projectID = button.data('bs-id');
+            var modal = $(this);
+            modal.find('#project_id').val(projectID);
+        });
+    });
+</script>
+
+
+<!--addUserToProject-->
+<div class="modal fade" id="addUserToProjectModal" tabindex="-1" aria-labelledby="addUserToProjectModal"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="addUserToProjectModalLabel">Projeye Kullanıcı Ekle</h1>
+            </div>
+            <div class="modal-body">
+                <form action="/project-user-ekle" method="post" id="addUserToProjectForm">
+                    <div>
+                        <label class="form-label">Kullanıcı Ekle</label>
+                        <!-- Hidden input field -->
+                        <input type="hidden" name="project_id" id="project_id" value="{{.ProjectId}}">
+                        <div class="dropdown">
+                            <input class="form-control" type="text" id="searchInputProjectEdit"
+                                placeholder="Kullanıcı arayın...">
+                            <div class="dropdown-menu shadow-lg" style="max-height: 250px; overflow-y: auto;"
+                                id="dropdownProject">
+                                {{ range $index, $value := .AllEmailsExceptProject}}
+                                <label class="dropdown-item">
+                                    <input class="form-check-input" type="checkbox" name="checkboxes" id="emailCheckId"
+                                        value="{{ $value }}">{{ $value }}
+                                </label>
+                                {{ end }}
+                            </div>
+                        </div>
+                        <div class="invalid-feedback">
+                            Lütfen geçerli bir mail adresi girin ya da seçin.
+                        </div>
+                        <br>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="submit" form="addUserToProjectForm" class="btn btn-primary">Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--UserAdd-->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('searchInputProjectEdit');
+        const dropdown = document.getElementById('dropdownProject');
+        const invalidFeedback = document.querySelector('.invalid-feedback');
+
+        searchInput.addEventListener('click', function () {
+            dropdown.style.display = "block";
+        });
+
+        searchInput.addEventListener('input', function () {
+            const filter = searchInput.value.toLowerCase();
+            Array.from(dropdown.getElementsByClassName('dropdown-item')).forEach(item => {
+                const txtValue = item.textContent || item.innerText;
+                if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        searchInput.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                if (isValidEmail(searchInput.value)) {
+                    searchInput.classList.remove('is-invalid');
+                } else {
+                    searchInput.classList.add('is-invalid');
+                }
+            }
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!searchInput.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.style.display = "none"
+            }
+        });
+
+        function isValidEmail(email) {
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return emailPattern.test(email);
+        }
+
+    });
+</script>
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const selects = document.querySelectorAll('select[name^="authority_"]');
+
+        selects.forEach(select => {
+            select.addEventListener('change', function (event) {
+                const userID = this.closest('.d-flex').querySelector('input[type="hidden"][name^="user_id_"]').value;
+                const projectID = document.querySelector('#editProjectUsersModal input[name="project_id"]').value;
+                const role = this.value;
+
+                console.log('UserID:', userID);
+                console.log('ProjectID:', projectID);
+                console.log('Role:', role);
+
+                if (!userID || !projectID) {
+                    console.error('UserID or ProjectID is missing');
+                    return;
+                }
+
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '/project/set-user-role', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.onload = function () {
+                    if (xhr.status === 200) {
+                        console.log('Role updated successfully');
+                    } else {
+                        console.error('Error updating role');
+                    }
+                };
+                xhr.send(`user_id=${userID}&project_id=${projectID}&authority=${role}`);
+            });
+        });
+    });
+
+</script>
+
+
+{{ end }}

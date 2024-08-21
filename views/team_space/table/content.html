@@ -1,0 +1,395 @@
+{{ define "content" }}
+{{ template "bodynavbar" . }}
+
+<style>
+    th {
+        cursor: pointer;
+    }
+</style>
+
+<div id="page-content-wrapper" style="margin-top: 112px;">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="collapse-show" id="collapseExample">
+                <table class="table table-striped table-bordered" id="dataTable">
+                    <thead>
+                        <tr>
+                            <th style="width: fit-content;" scope="col" onclick="sortTable(0)">#</th>
+                            <th scope="col" onclick="sortTable(1)">Görev Başlığı</th>
+                            <th scope="col" onclick="sortTable(2)">Kullanıcılar</th>
+                            <th scope="col" onclick="sortTable(3)">Durum</th>
+                            <th scope="col" onclick="sortTable(4)">Bitiş Tarihi</th>
+                            <th scope="col" onclick="sortTable(5)">Öncelik</th>
+                            <th scope="col" onclick="sortTable(6)">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{ $currentIssueInt := -1 }}
+                        {{ range $index, $value := .Issues }}
+                        {{ if ne $currentIssueInt $value.IssueInt }}
+                        {{ $currentIssueInt = $value.IssueInt }}
+                        <tr>
+                            <td class="align-middle"></td>
+                            <td class="align-middle">{{$value.Title}}</td>
+                            <td class="align-middle">
+                                <div class="dropdown-center">
+                                    <button style="border: none;" class="btn btn-outline-dark dropdown-toggle"
+                                        type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Görmek İçin Tıkla
+                                    </button>
+                                    <ul class="dropdown-menu shadow-lg bg-body-tertiary rounded">
+                                        {{ range $innerIndex, $innerValue := $.Issues }}
+                                        {{ if eq $innerValue.IssueInt $value.IssueInt }}
+                                        <li><a class="dropdown-item" data-bs-toggle="offcanvas" href="#profileViewer"
+                                                role="button" aria-controls="profileViewer">{{ $innerValue.User.Email
+                                                }}</a>
+                                        </li>
+                                        {{ end }}
+                                        {{ end }}
+                                    </ul>
+                                </div>
+                            </td>
+                            <td class="align-middle">
+                                {{$status := $value.Status}}
+                                {{if eq $status "card1"}} To Do
+                                {{else if eq $status "card2"}} Working
+                                {{else if eq $status "card3"}} Done
+                                {{else}} Unknown
+                                {{end}}</td>
+                            <td class="align-middle dateformat">{{$value.DueDate}}</td>
+                            <td class="align-middle">{{$value.Priority}}</td>
+                            <td>
+                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal"
+                                    data-bs-target="#commentModal" data-bs-id="{{$value.IssueInt}}">
+                                    <span><i class="bi bi-chat-left-text"></i></span></button>
+                                <button class="btn btn-outline-warning edit-task-btn" type="button"
+                                    data-bs-toggle="modal" data-bs-target="#editTaskModal" data-bs-id="{{$value.ID}}">
+                                    <span><i class="bi bi-pencil-square"></i></span>
+                                </button>
+                                <a href="javascript:void(0);" class="btn btn-outline-danger delete-issue-btn"
+                                    data-id="{{$value.ID}}">
+                                    <span><i class="bi bi-trash3"></i></span>
+                                </a>
+                            </td>
+                        </tr>
+                        {{ end }}
+                        {{ end }}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--DateFormatting-->
+<script>
+    document.querySelectorAll('.dateformat').forEach(function (dateElement) {
+        let date = new Date(dateElement.innerHTML);
+        let formattedDate = date.getFullYear().toString() + "-" + (date.getMonth().toString().length == 2 ? date.getMonth().toString() : "0" + date.getMonth().toString()) + "-" + (date.getDate().toString().length == 2 ? date.getDate().toString() : "0" + date.getDate().toString());
+        dateElement.innerHTML = formattedDate;
+    });
+</script>
+
+<!--commentModal-->
+<div class="modal fade" id="commentModal" tabindex="-1" role="dialog" aria-labelledby="commentModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="commentModalLabel">Yorumlar</h5>
+            </div>
+            <div class="modal-body d-flex" style="flex-direction: column; padding-bottom: 0; justify-content: space-between;">
+                <div></div>
+                <div style="display: flex; position: sticky; flex-direction: column; bottom: 0; background-color: white;">
+                    <hr class="border border-1 opacity-50">
+                    <form action="/comment-ekle" method="post" id="commentForm">
+                        <input class="form-control mb-3" name="comment" type="text" placeholder="Yorum yapın..."
+                            autocomplete="off">
+                        <input type="hidden" name="issue_int" id="issue_int">
+                        <input type="hidden" name="project_id" id="project_id">
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="submit" form="commentForm" class="btn btn-primary">Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $('#commentModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var issueInt = button.data('bs-id');
+        var modal = $(this);
+        modal.find('#issue_int').val(issueInt);
+
+        console.log('Modal açılıyor, issue_int:', issueInt);
+        console.log(typeof issueInt)
+        fetchAndDisplayComments(issueInt);
+    });
+
+    function fetchAndDisplayComments(issueInt) {
+        $.ajax({
+            url: '/GetCommentsByIssue',
+            type: 'GET',
+            data: { issue_int: issueInt },
+            success: function (response) {
+                console.log('AJAX başarılı, gelen cevap:', response);
+                displayComments(response);
+            },
+            error: function (xhr, status, error) {
+                console.error('AJAX hatası:', status, error);
+                console.error('Hata detayları:', xhr.responseText);
+                displayComments([]);
+            }
+        });
+        
+    }
+
+    function displayComments(comments) {
+        var commentContainer = $('#commentModal .modal-body > div').first();
+        commentContainer.empty();
+    
+        if (Array.isArray(comments) && comments.length > 0) {
+            comments.forEach(function (comment) {
+                var commentHtml = '<div class="d-flex mb-4 justify-content-between">' + '<div>' +
+                    '<h6>' + (comment.User?.Email || 'Anonim') + '</h6>' +
+                    '<p>' + (comment.Text || 'Boş yorum') + '</p>' + '</div>'+
+                    '<form action="/delete-comment" method="POST">'+
+                        '<input type="hidden" name="comment_id" id="' + (comment.ID) + '" value="' + (comment.ID) + '">' +
+                        '<button type="submit" class="btn btn-danger">Sil</button>' +
+                    '</form>' +
+                    '</div>';
+                commentContainer.append(commentHtml);
+            });
+        } else {
+            commentContainer.append('<p>Henüz yorum yok.</p>');
+        }
+    }
+</script>
+
+<script>
+    $('#commentModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var issueID = button.data('bs-id');
+        var modal = $(this);
+        modal.find('#project_id').val(issueID);
+    });
+</script>
+
+<!--edit-->
+<div class="modal fade" id="editTaskModal" tabindex="-1" role="dialog" aria-labelledby="editTaskModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editTaskModalLabel">Görev Düzenle</h5>
+            </div>
+            <div class="modal-body">
+                <form id="issueEditForm" action="/issue-edit" method="post">
+                    <div class="form-group">
+                        <label for="title">Görev Başlığı</label>
+                        <input type="text" class="form-control" id="title" name="name" value="" required>
+                        <br>
+                        <label class="col-form-label">Kullanıcılar</label>
+                        <div class="dropdown">
+                            <input type="text" class="form-control" id="searchInputIssueEdit"
+                                placeholder="Kullanıcı arayın...">
+                            <div class="dropdown-menu shadow-lg" style="max-height: 250px; overflow-y: auto;"
+                                id="dropdownIssueEdit">
+                                {{ range $index, $value := .UserRoles}}
+                                <label class="dropdown-item">
+                                    <input class="form-check-input" type="checkbox" name="checkboxes"
+                                        value="{{ $value.UserID }}">{{ $value.Email }}
+                                </label>
+                                {{ end }}
+                            </div>
+                            <div id="invalid-feedback" class="invalid-feedback">
+                                Lütfen kullanıcılardan en az birini işaretleyin.
+                            </div>
+                        </div>
+                        <br>
+                        <label for="due_date">Bitiş Tarihi</label>
+                        <input type="date" class="form-control" id="due_date" name="due_date">
+                        <br>
+                        <label for="priority">Öncelik</label>
+                        <select class="form-select" aria-label="Default select example" name="priority" required>
+                            <option value="" disabled selected hidden>Öncelik seçin...</option>
+                            <option value="Acil">Acil</option>
+                            <option value="Yüksek">Yüksek</option>
+                            <option value="Orta">Orta</option>
+                            <option value="Düşük">Düşük</option>
+                        </select>
+                        <br>
+                        <label for="status">Durum</label>
+                        <select class="form-select" aria-label="Default select example" name="status" required>
+                            <option value="ToDo" selected>To Do</option>
+                            <option value="Working">Working</option>
+                            <option value="Done">Done</option>
+                        </select>
+                        <br>
+                        <!-- Gizli input alanı -->
+                        <input type="hidden" name="issue_id" id="issue_id">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button form="issueEditForm" type="submit" class="btn btn-primary">Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--UserAdd-->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('searchInputIssueEdit');
+        const dropdown = document.getElementById('dropdownIssueEdit');
+
+        searchInput.addEventListener('click', function () {
+            dropdown.style.display = "block"
+        });
+
+        searchInput.addEventListener('input', function () {
+            const filter = searchInput.value.toLowerCase();
+            Array.from(dropdown.getElementsByClassName('dropdown-item')).forEach(item => {
+                const txtValue = item.textContent || item.innerText;
+                if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        searchInput.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                if (isValidEmail(searchInput.value)) {
+                    searchInput.classList.remove('is-invalid');
+                } else {
+                    searchInput.classList.add('is-invalid');
+                }
+            }
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!searchInput.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.style.display = "none";
+            }
+        });
+
+        function isValidEmail(email) {
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return emailPattern.test(email);
+        }
+
+    });
+</script>
+
+<script>
+    document.getElementById('issueEditForm').addEventListener('submit', function (event) {
+        var checkboxes = document.getElementsByName('checkboxes');
+        var invalidFeedback = document.getElementById('invalid-feedback');
+        var dropdownIssueEdit = document.getElementById('dropdownIssueEdit');
+        var isChecked = false;
+
+        for (var i = 0; i < checkboxes.length; i++) {
+            if (checkboxes[i].checked) {
+                isChecked = true;
+                break;
+            }
+        }
+
+        if (!isChecked) {
+            event.preventDefault();
+
+            // Hata mesajını göster
+            invalidFeedback.style.display = 'block';
+
+            // Dropdown'ı göster
+            dropdownIssueEdit.style.display = 'block';
+
+
+
+        }
+    });
+</script>
+
+<!--Numbering-->
+<script>
+    window.onload = function () {
+        var table = document.getElementById('dataTable');
+        var rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+        for (var i = 0; i < rows.length; i++) {
+            rows[i].getElementsByTagName('td')[0].innerText = i + 1;
+        }
+    };
+</script>
+
+<!--Sorting-->
+<script>
+    function sortTable(columnIndex) {
+        const table = document.getElementById("dataTable");
+        const tbody = table.tBodies[0];
+        const rows = Array.from(tbody.rows);
+        const isAsc = table.dataset.sortOrder !== 'asc';
+
+        rows.sort((rowA, rowB) => {
+            const cellA = rowA.cells[columnIndex].innerText.toLowerCase();
+            const cellB = rowB.cells[columnIndex].innerText.toLowerCase();
+
+            if (cellA < cellB) return isAsc ? -1 : 1;
+            if (cellA > cellB) return isAsc ? 1 : -1;
+            return 0;
+        });
+
+        rows.forEach(row => tbody.appendChild(row));
+        table.dataset.sortOrder = isAsc ? 'asc' : 'desc';
+    }
+</script>
+
+
+<!--edit script-->
+<script>
+    $('#editTaskModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var issueID = button.data('bs-id');
+        var modal = $(this);
+        modal.find('#issue_id').val(issueID);
+    });
+</script>
+
+<!--delete script-->
+<script>
+    $(document).ready(function () {
+        $('.delete-issue-btn').on('click', function (e) {
+            e.preventDefault(); // Varsayılan click davranışını engelle
+
+            var issueID = $(this).data('id');
+
+            // Onay iletişim kutusu göster
+            if (confirm("Bu görevi silmek istediğinizden emin misiniz?")) {
+                // Kullanıcı "Tamam" derse formu oluştur ve gönder
+                var form = $('<form>', {
+                    'method': 'POST',
+                    'action': '/issue-delete'
+                });
+
+                var hiddenField = $('<input>', {
+                    'type': 'hidden',
+                    'name': 'issue_id',
+                    'value': issueID
+                });
+
+                form.append(hiddenField);
+                form.appendTo('body').submit();
+            }
+            // Kullanıcı "İptal" derse hiçbir şey yapma
+        });
+    });
+</script>
+{{ end }}

@@ -1,0 +1,98 @@
+{{ define "content" }}
+<style>
+    th{
+        cursor: pointer;
+    }
+</style>
+
+<div id="page-content-wrapper">
+    <div class="container-fluid xyz">
+        <div class="row">
+            <div>
+                <h2><span><i class="bi bi-command me-2" style="font-size: xx-large;"></i></span>Tüm Projeler</h2>
+                <hr>
+                <table class="table table-striped table-bordered" id="projectTable">
+                    <thead>
+                        <tr>
+                            <th class="align-middle" scope="col" onclick="sortTable(0)">Proje Adı</th>
+                            <th class="align-middle" scope="col" onclick="sortTable(1)">Proje Açıklaması</th>
+                            <th class="align-middle" scope="col" onclick="sortTable(2)">Proje Üyeleri</th>
+                            <th class="align-middle" scope="col" onclick="sortTable(3)">Projedeki Rolüm</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{ range $index, $value := .AllProjects}}
+                        <tr>
+                            <td class="align-middle"><a style="text-decoration: none;"
+                                    href="/team_space/list/{{$value.ProjectID}}">{{$value.Name}}</a></td>
+                            <td class="align-middle">{{$value.Description}}</td>
+                            <td class="align-middle">
+                                <div class="dropdown-center">
+                                    <button class="btn btn-outline-primary dropdown-toggle" type="button"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                        Görmek İçin Tıkla
+                                    </button>
+                                    <ul class="dropdown-menu shadow-lg bg-body-tertiary rounded">
+                                        {{ $data := getProjectEmail $value.ProjectID }}
+                                        {{ range $email := $data }}
+                                        <li><a class="dropdown-item" href="#">{{ $email }}</a></li>
+                                        {{ end }}
+                                    </ul>
+                                </div>
+                            </td>
+                            <td class="align-middle">
+                                {{$role := $value.Role}}
+                                {{if eq $role "owner"}} Proje Sahibi
+                                {{else if eq $role "manager"}} Yönetici
+                                {{else if eq $role "member"}} Üye
+                                {{else}} Unknown
+                                {{end}}</td>
+                            <input type="hidden" class="updateTime" value="{{ $value.UpdatedAt }}">
+                        </tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+                {{.a}}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Sorting-->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const table = document.getElementById("projectTable");
+        const tbody = table.tBodies[0];
+        const rows = Array.from(tbody.rows);
+        const isAsc = table.dataset.sortOrder !== 'asc';
+
+        rows.sort((rowA, rowB) => {
+            const dateA = new Date(rowA.querySelector('.updateTime').value);
+            const dateB = new Date(rowB.querySelector('.updateTime').value);
+            return dateB - dateA;
+        });
+
+        rows.forEach(row => tbody.appendChild(row));
+        table.dataset.sortOrder = isAsc ? 'asc' : 'desc';
+    });
+
+    function sortTable(columnIndex) {
+        const table = document.getElementById("projectTable");
+        const tbody = table.tBodies[0];
+        const rows = Array.from(tbody.rows);
+        const isAsc = table.dataset.sortOrder !== 'asc';
+
+        rows.sort((rowA, rowB) => {
+            const cellA = rowA.cells[columnIndex].innerText.toLowerCase();
+            const cellB = rowB.cells[columnIndex].innerText.toLowerCase();
+
+            if (cellA < cellB) return isAsc ? -1 : 1;
+            if (cellA > cellB) return isAsc ? 1 : -1;
+            return 0;
+        });
+
+        rows.forEach(row => tbody.appendChild(row));
+        table.dataset.sortOrder = isAsc ? 'asc' : 'desc';
+    }
+</script>
+{{ end }}

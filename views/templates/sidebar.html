@@ -1,0 +1,308 @@
+{{ define "sidebar" }}
+<!--linkler-->
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  .hover-button {
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .hover-div:hover .hover-button {
+    opacity: 1;
+  }
+
+  .hover-div:hover .hover-a, .hover-div:hover .hover-icon {
+    color: #23214B;
+  }
+
+  .dropdown-menu.show {
+    display: block;
+  }
+
+  .is-invalid .invalid-feedback {
+    display: block;
+  }
+</style>
+<!--linkler-->
+<div id="sidebar-wrapper">
+  <ul class="sidebar-nav nav-pills nav-stacked mt-2" id="menu">
+    <li>
+      <a href="/" class="d-flex align-items-center"><span><i class="bi bi-house-door"
+            style="font-size: x-large;"></i></span>Ana Sayfa</a>
+    </li>
+    <li>
+      <a href="/inbox" class="d-flex align-items-center"><span><i class="bi bi-envelope-paper"
+            style="font-size: x-large;"></i></span>Gelen Kutusu<span id="isAppear" class="badge text-bg-secondary ms-5"
+          style="text-indent: 0;">{{.UnSeenNotification}}</span>
+      </a>
+    </li>
+    <hr>
+    <h6 class="ms-4">Alanlar</h6>
+    <div style="overflow-y: auto; height: 500px;">
+      <li>
+        <a href="/everything" class="d-flex align-items-center"><span><i class="bi bi-command"
+              style="font-size: x-large;"></i></span>Her Şey</a>
+      </li>
+      <li>
+        <a href="/share" class="d-flex align-items-center"><span><i class="bi bi-share"
+              style="font-size: x-large;"></i></span>Paylaşılan</a>
+      </li>
+      {{ range $index, $value := .WorkSpaces }}
+      <li>
+        <div class="spacer d-flex align-items-center hover-div" style="justify-content:space-between;">
+          <div class="hover-icon"><i class="bi bi-people me-0" style="font-size: x-large;"></i></div>
+          <a class="hover-a"
+            style="border-left: none; flex: auto; display: flex; align-items: center; text-indent: 0; line-height: 30px; padding-left: 15px; overflow: hidden;"
+            href="/team_space/{{$value.ID}}">{{$value.Name }}</a>
+          <button style="border: none;" type="button" class="btn btn-outline-dark d-inline hover-button"
+            data-bs-toggle="modal" data-bs-target="#editSpaceModal" data-bs-id="{{$value.ID}}"
+            data-bs-name="{{$value.Name}}">
+            <span><i class="bi bi-three-dots"></i></span>
+          </button>
+          <button style="border: none;" type="button" class="btn btn-outline-dark d-inline hover-button"
+            data-bs-toggle="modal" data-bs-target="#projectModal" data-bs-id="{{$value.ID}}">
+            <span><i class="bi bi-plus"></i></span>
+          </button>
+        </div>
+      </li>
+      {{ end }}
+      <li>
+        <button style="border: none; width: 80%;" type="button"
+          class="btn btn-outline-primary d-flex align-items-center ms-3" data-toggle="modal"
+          data-target="#createSpaceModal">
+          <span><i class="bi bi-plus me-3" style="font-size: x-large;"></i></span>Alan Oluştur
+        </button>
+      </li>
+    </div>
+  </ul>
+</div>
+
+<!-- editSpaceModal -->
+<div class="modal fade" id="editSpaceModal" tabindex="-1" aria-labelledby="editSpaceModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fs-5" id="editSpaceModalLabel">Alan Düzenle</h5>
+      </div>
+      <div class="modal-body">
+        <form action="/workSpaces-edit" method="post" id="editWorkspaceForm">
+          <div class="mb-3">
+            <div>
+              <label class="col-form-label">Alan Başlığı</label>
+              <input type="text" class="form-control" name="name" id="workspace_name" required>
+            </div>
+            <!-- Hidden input field -->
+            <input type="hidden" name="workspace_id" id="workspace_id">
+          </div>
+        </form>
+        <form action="/workSpaces-delete" method="post" id="deleteWorkspaceForm">
+          <input type="hidden" name="workspace_id" id="delete_workspace_id">
+        </form>
+      </div>
+      <div class="modal-footer d-flex justify-content-between">
+        <a href="#" class="btn btn-danger" id="delete_workspace">Alanı Sil</a>
+        <div>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+          <button type="submit" form="editWorkspaceForm" class="btn btn-primary">Kaydet</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--DeleteWorkSpace-->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var deleteButton = document.getElementById('delete_workspace');
+    var deleteForm = document.getElementById('deleteWorkspaceForm');
+    var deleteWorkspaceIdInput = document.getElementById('delete_workspace_id');
+    var workspaceIdInput = document.getElementById('workspace_id');
+
+    deleteButton.addEventListener('click', function (e) {
+      e.preventDefault();
+
+      if (confirm('Bu alanı silmek istediğinizden emin misiniz?')) {
+        // Silme formundaki gizli input'a workspace_id değerini ata
+        deleteWorkspaceIdInput.value = workspaceIdInput.value;
+
+        // Silme formunu gönder
+        deleteForm.submit();
+      }
+    });
+  });
+</script>
+
+<!--NotificationCount-->
+<script>
+  const isAppear = document.getElementById('isAppear');
+  if (isAppear.innerHTML == "0") {
+    isAppear.style.display = 'none';
+  }
+</script>
+
+<!-- editSpaceModal JQUERY -->
+<script>
+  $('#editSpaceModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var workspaceID = button.data('bs-id');
+    var modal = $(this);
+    modal.find('#workspace_id').val(workspaceID);
+  });
+</script>
+<!-- editSpaceModal tek tek bilgiler ile popup getirme -->
+<script>
+  document.addEventListener('DOMContentLoaded', (event) => {
+    var editSpaceModal = document.getElementById('editSpaceModal');
+    editSpaceModal.addEventListener('show.bs.modal', function (event) {
+      var button = event.relatedTarget; // Butona tıklanarak açılan modal
+      var workspaceId = button.getAttribute('data-bs-id'); // Butondaki workspace ID'si
+      var workspaceName = button.getAttribute('data-bs-name'); // Butondaki workspace adı
+
+      var modalTitle = editSpaceModal.querySelector('.modal-title');
+      var modalBodyInput = editSpaceModal.querySelector('#workspace_name');
+      var modalHiddenInput = editSpaceModal.querySelector('#workspace_id');
+      var deleteButton = editSpaceModal.querySelector('#delete_workspace');
+
+      modalBodyInput.value = workspaceName;
+      modalHiddenInput.value = workspaceId;
+      deleteButton.setAttribute('data-id', workspaceId);
+    });
+  });
+
+</script>
+
+<!--projectModal-->
+<div class="modal fade" id="projectModal" tabindex="-1" aria-labelledby="projectModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fs-5" id="projectModalLabel">Proje Oluştur</h5>
+      </div>
+      <div class="modal-body">
+        <form action="/project-yeni-ekle" method="post" id="createProjectForm">
+          <div class="mb-3">
+            <label for="project-name" class="col-form-label">Proje Adı</label>
+            <input type="text" class="form-control" name="name" id="project-name" required>
+            <br>
+            <label for="description" class="col-form-label">Açıklama</label>
+            <input type="text" class="form-control" name="description" id="description">
+            <br>
+            <label class="col-form-label">Kullanıcılar</label>
+            <div class="dropdown">
+              <input type="text" class="form-control" id="searchInput" placeholder="Kullanıcı arayın...">
+              <div class="dropdown-menu shadow-lg" style="max-height: 250px; overflow-y: auto;" id="dropdown">
+                {{ range $index, $value := .OtherUsers}}
+                <label class="dropdown-item">
+                  <input class="form-check-input" id="emailCheckId" type="checkbox" name="checkboxes"
+                    value="{{ $value.Email }}">{{ $value.Email }}
+                </label>
+                {{ end }}
+              </div>
+              <div class="invalid-feedback">
+                Lütfen en az bir kullanıcı seçin.
+              </div>
+            </div>
+            <!-- Gizli input alanı -->
+            <input type="hidden" name="workspace_id" id="workspace_id">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+        <button form="createProjectForm" type="submit" class="btn btn-primary">Oluştur</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--UserAdd-->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('searchInput');
+    const dropdown = document.getElementById('dropdown');
+    const invalidFeedback = document.querySelector('.invalid-feedback');
+    const createProjectForm = document.getElementById('createProjectForm');
+
+    searchInput.addEventListener('click', function () {
+      dropdown.style.display = "block";
+    });
+
+    searchInput.addEventListener('input', function () {
+      const filter = searchInput.value.toLowerCase();
+      Array.from(dropdown.getElementsByClassName('dropdown-item')).forEach(item => {
+        const txtValue = item.textContent || item.innerText;
+        if (txtValue.toLowerCase().indexOf(filter) > -1) {
+          item.style.display = '';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    });
+
+    document.addEventListener('click', function (event) {
+      if (!searchInput.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.style.display = "none"
+      }
+    });
+
+    function isCheckboxChecked() {
+      const checkboxes = dropdown.querySelectorAll('input[type="checkbox"]');
+      return Array.from(checkboxes).some(checkbox => checkbox.checked);
+    }
+
+    createProjectForm.addEventListener('submit', function (event) {
+      if (!isCheckboxChecked()) {
+        event.preventDefault();
+        searchInput.classList.add('is-invalid');
+        dropdown.style.display = "block";
+      } else {
+        searchInput.classList.remove('is-invalid');
+      }
+    });
+  });
+</script>
+
+<!--projectModal JQUERY-->
+<script>
+  // Modal açıldığında workspace ID'sini gizli input alanına yerleştirme
+  $('#projectModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget); // Modalı açan düğme
+    var workspaceID = button.data('bs-id'); // data-bs-id özniteliğinden workspace ID'yi al
+    var modal = $(this);
+    modal.find('#workspace_id').val(workspaceID); // Gizli input alanına workspace ID'yi yerleştir
+  });
+</script>
+
+<!-- createSpaceModal -->
+<div class="modal fade" id="createSpaceModal" tabindex="-1" role="dialog" aria-labelledby="createSpaceModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="createSpaceModalLabel">Alan Oluştur</h5>
+      </div>
+      <div class="modal-body">
+        <!-- FORM -->
+        <form action="/workSpaces-yeni-ekle" method="post" id="createSpaceForm">
+          <div class="form-group">
+            <label for="title">Alan Başlığı</label>
+            <br />
+            <input type="text" class="form-control" id="title" name="name" required />
+          </div>
+        </form>
+        <!-- Form  end -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          İptal
+        </button>
+        <button form="createSpaceForm" type="submit" class="btn btn-primary">Oluştur</button>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}

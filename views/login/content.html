@@ -1,0 +1,43 @@
+{{ define "content" }}
+<div>
+</div>
+<div class="main">
+    <input type="checkbox" id="chk" aria-hidden="true">
+
+    <div class="signup">
+        <form action="/login/do-login" method="post">
+            <label for="chk" aria-hidden="true">Giriş</label>
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="password" name="password" placeholder="Parola" required>
+            <button type="submit">Giriş yap</button>
+        </form>
+    </div>
+
+    <div class="login">
+        <form action="/login/do-signup" method="post">
+            <label style="margin-bottom: 40px;" for="chk" aria-hidden="true">Kayıt</label>
+            <input type="text" name="username" placeholder="Ad Soyad" required>
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="password" id="password-checker" placeholder="Parola" required>
+            <input type="password" id="password" name="password" placeholder="Parolayı yeniden giriniz..." required>
+            <button type="submit">Kayıt ol</button>
+        </form>
+    </div>
+</div>
+
+<!--passwordControl-->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const password1 = document.getElementById('password-checker');
+        const password2 = document.getElementById('password')
+        const form = password1.closest('form');
+
+        form.addEventListener('submit', function (e) {
+            if (password1.value !== password2.value) {
+                e.preventDefault();
+                alert('Parolalar eşleşmiyor. Lütfen kontrol ediniz.');
+            }
+        });
+    });
+</script>
+{{ end }}

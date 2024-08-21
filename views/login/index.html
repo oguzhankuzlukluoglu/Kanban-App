@@ -1,0 +1,17 @@
+{{ define "index" }}
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Giriş Yap / Kayıt Ol</title>
+		<link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="/assets/login.css">
+		<link rel="stylesheet" href="/assets/iziToast.min.css">
+	</head>
+
+<body>
+	{{ template "content"}}
+	{{ template "alert" .Alert}}
+</body>
+
+</html>
+{{ end }}

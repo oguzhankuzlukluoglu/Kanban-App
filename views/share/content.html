@@ -1,0 +1,50 @@
+{{ define "content" }}
+<!--bar end-->
+
+<style>
+    .card:hover {
+        transition: .5s;
+        border: 1px solid rgb(100, 100, 100);
+    }
+</style>
+
+<div id="page-content-wrapper">
+    <h2 class="ms-3 mb-4"><span><i class="bi bi-share me-3" style="font-size: xx-large;"></i></span>Benimle Paylaşılanlar</h2>
+    <div class="container-fluid xyz">
+        <div class="row">
+            {{ range $index, $value := .Share }}
+            <!--CARD-->
+            <div class="col-md-3 mb-4">
+                <a href="/team_space/list/{{$value.ProjectID}}" class="text-decoration-none text-dark">
+                    <div class="card" style="border-radius: 5px;">
+                        <input type="hidden" class="updateTime" value="{{ $value.UpdatedAt }}">
+                        <div class="card-header">
+                            <h5>{{ $value.Name }}</h5>
+                        </div>
+                        <div class="card-body" style="overflow-y: auto; height: 90px;">
+                            {{ $value.Description }}
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <!--card end-->
+            {{ end }}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const row = document.querySelector('.row');
+        const cards = Array.from(row.children);
+
+        cards.sort((a, b) => {
+            const dateA = new Date(a.querySelector('.updateTime').value);
+            const dateB = new Date(b.querySelector('.updateTime').value);
+            return dateB - dateA;
+        });
+
+        cards.forEach(card => row.appendChild(card));
+    });
+</script>
+{{ end }}
