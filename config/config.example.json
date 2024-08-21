@@ -2,7 +2,7 @@
   "debug": {
     "public": "public",
     "domain": "http://localhost:8000",
-    "session_secret": "c33e4f019088034757dec2963ceee1c2",
+    "session_secret": "",
     "database": {
       "user": "",
       "password": "",
